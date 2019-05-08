@@ -1,0 +1,33 @@
+#include "PID.h"
+//Inicialización de la estructura
+void init_tPID(t_PID* PID, float Kp, float Ki, float Kd, float dt, float Umin,
+float Umax)
+{
+ PID->e_t = 0;
+ PID->Laste_t = 0;
+ PID->e_i = 0;
+ PID->e_d = 0;
+ PID->u_t = 0;
+ PID->Ts = dt;
+ PID->Kp = Kp; //tune
+ PID->Ki = Ki;
+ PID->Kd = Kd;
+ PID->Umin = Umin;
+ PID->Umax = Umax;
+}
+/*------------------Función Controlador PID---------------------*/
+void PID(t_PID* PID, float target, float current)
+{
+ PID->e_t = target - current;
+ PID->e_i += PID->e_t * PID->Ts;
+ PID->e_d = (PID->e_t - PID->Laste_t) / PID->Ts;
+ PID->u_t = PID->Kp * PID->e_t + PID->Ki * PID->e_i + PID->Kd * PID->e_d;
+ PID->Laste_t = PID->e_t;
+ if (PID->u_t < PID->Umin){
+ PID->e_i -= PID->e_t * PID->Ts; // anti windup
+ PID->u_t = PID->Umin;
+ }else if(PID->u_t > PID->Umax){
+ PID->e_i -= PID->e_t * PID->Ts;
+ PID->u_t = PID->Umax;
+ }
+}
